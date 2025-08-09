@@ -21,3 +21,21 @@ export async function getResource(ankamaId) {
   if (!r.ok) throw new Error('API resource error')
   return r.json()
 }
+
+
+const _cache = new Map()
+
+export async function resolveItemById(ankamaId) {
+  if (!ankamaId) return null
+  if (_cache.has(ankamaId)) return _cache.get(ankamaId)
+  // Try generic item search by query=id then pick exact match
+  const url = new URL(`${BASE}/items/search`)
+  url.searchParams.set('query', String(ankamaId))
+  url.searchParams.set('limit', '5')
+  const r = await fetch(url)
+  if (!r.ok) return null
+  const list = await r.json()
+  const found = list.find(it => Number(it.ankama_id) === Number(ankamaId)) || list[0] || null
+  if (found) _cache.set(ankamaId, found)
+  return found
+}

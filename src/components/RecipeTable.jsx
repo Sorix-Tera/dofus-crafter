@@ -1,32 +1,44 @@
 
 import React, { useEffect, useState } from 'react'
 import { getPrice, setPrice } from '../db/priceService'
+import { resolveItemById } from '../api/dofusdude'
 
 export default function RecipeTable({ recipe, onTotalsChange }) {
   const [rows, setRows] = useState([])
 
-  useEffect(() => {
-    async function hydrate() {
-      const withPrices = await Promise.all((recipe || []).map(async ing => {
-        const item = ing.item || ing.ingredient || ing
-        const id = item?.ankama_id ?? ing?.ankama_id
-        const p = id ? await getPrice(id) : null
-        return {
-          ...ing,
-          item,
-          name: item?.name || '???',
-          img: item?.image_urls?.thumb || item?.image_urls?.hq || null,
-          lastUnitPrice: p?.lastUnitPrice ?? '',
-          lastUpdatedAt: p?.lastUpdatedAt || null,
-          id
-        }
-      }))
-      setRows(withPrices)
-    }
-    hydrate()
-  }, [recipe])
+  
+useEffect(() => {
+  async function hydrate() {
+    const base = (recipe || []).map(ing => {
+      const item = ing.item || ing.ingredient || ing
+      const id = item?.ankama_id ?? ing?.item_ankama_id ?? ing?.ankama_id ?? ing?.id
+      return { raw: ing, item, id, quantity: ing.quantity || ing.qty || 0 }
+    })
 
-  useEffect(() => {
+    // Resolve missing items (name/images) if needed
+    const resolved = await Promise.all(base.map(async b => {
+      let item = b.item
+      if (!item?.name && b.id) {
+        item = await resolveItemById(b.id) || item
+      }
+      const p = b.id ? await getPrice(b.id) : null
+      return {
+        ...b.raw,
+        item,
+        id: b.id,
+        name: item?.name || '???',
+        img: item?.image_urls?.thumb || item?.image_urls?.hq || null,
+        quantity: b.quantity,
+        lastUnitPrice: p?.lastUnitPrice ?? '',
+        lastUpdatedAt: p?.lastUpdatedAt || null
+      }
+    }))
+
+    setRows(resolved)
+  }
+  hydrate()
+}, [recipe])
+useEffect(() => {
     const craftCost = rows.reduce((sum, r) => {
       const u = Number(r.lastUnitPrice || 0)
       return sum + (u * (r.quantity || 0))
