@@ -39,3 +39,35 @@ export async function resolveItemById(ankamaId) {
   if (found) _cache.set(ankamaId, found)
   return found
 }
+
+
+async function tryFetch(url) {
+  const r = await fetch(url)
+  if (r.ok) return r.json()
+  throw new Error('not found')
+}
+
+// Try different collections by ankamaId to find the ingredient's name
+export async function getAnyItemById(ankamaId) {
+  const id = Number(ankamaId)
+  if (!id) return null
+  // simple in-memory cache
+  if (!window.__anyCache) window.__anyCache = new Map()
+  if (window.__anyCache.has(id)) return window.__anyCache.get(id)
+
+  const bases = [
+    `${BASE}/items/equipment/${id}`,
+    `${BASE}/items/resources/${id}`,
+    `${BASE}/items/consumables/${id}`,
+    `${BASE}/items/cosmetics/${id}`,
+    `${BASE}/items/quest-items/${id}`
+  ]
+  for (const u of bases) {
+    try {
+      const obj = await tryFetch(u)
+      window.__anyCache.set(id, obj)
+      return obj
+    } catch (e) { /* try next */ }
+  }
+  return null
+}

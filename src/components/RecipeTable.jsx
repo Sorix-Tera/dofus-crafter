@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState } from 'react'
 import { getPrice, setPrice } from '../db/priceService'
-import { resolveItemById } from '../api/dofusdude'
+import { getAnyItemById } from '../api/dofusdude'
 
 export default function RecipeTable({ recipe, onTotalsChange }) {
   const [rows, setRows] = useState([])
 
   
+
 useEffect(() => {
   async function hydrate() {
     const base = (recipe || []).map(ing => {
@@ -15,11 +16,10 @@ useEffect(() => {
       return { raw: ing, item, id, quantity: ing.quantity || ing.qty || 0 }
     })
 
-    // Resolve missing items (name/images) if needed
     const resolved = await Promise.all(base.map(async b => {
       let item = b.item
-      if (!item?.name && b.id) {
-        item = await resolveItemById(b.id) || item
+      if ((!item || !item.name) && b.id) {
+        item = await getAnyItemById(b.id) || item
       }
       const p = b.id ? await getPrice(b.id) : null
       return {
@@ -27,7 +27,7 @@ useEffect(() => {
         item,
         id: b.id,
         name: item?.name || '???',
-        img: item?.image_urls?.thumb || item?.image_urls?.hq || null,
+        img: null, // images facultatives pour l'instant
         quantity: b.quantity,
         lastUnitPrice: p?.lastUnitPrice ?? '',
         lastUpdatedAt: p?.lastUpdatedAt || null
