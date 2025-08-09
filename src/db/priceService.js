@@ -26,7 +26,6 @@ export async function db() {
   })
 }
 
-// ---- prices ----
 export async function getPrice(ankama_id) {
   const d = await db()
   return d.get(PRICES, Number(ankama_id))
@@ -54,7 +53,6 @@ export async function deletePrice(ankama_id) {
   return d.delete(PRICES, Number(ankama_id))
 }
 
-// ---- watchlist ----
 export async function saveToWatchlist(item) {
   const d = await db()
   await d.put(WATCH, item)
@@ -71,7 +69,6 @@ export async function getWatchlist() {
   return d.getAll(WATCH)
 }
 
-// ---- sales ----
 export async function addSale(entry) {
   const d = await db()
   return d.add(SALES, entry)

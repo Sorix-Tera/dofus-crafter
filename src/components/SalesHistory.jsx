@@ -11,13 +11,9 @@ export default function SalesHistory({ item }) {
   const [days, setDays] = useState(1)
 
   async function load() {
-    if (!item) {
-      setSales(await getAllSales())
-    } else {
-      setSales(await getSalesByItem(item.ankama_id))
-    }
+    if (!item) setSales(await getAllSales())
+    else setSales(await getSalesByItem(item.ankama_id))
   }
-
   useEffect(() => { load() }, [item])
 
   useEffect(() => {
@@ -25,18 +21,10 @@ export default function SalesHistory({ item }) {
     const buys = sales.map(s => ({ x: new Date(s.date), y: s.purchaseCost }))
     const sells = sales.map(s => ({ x: new Date(s.date), y: s.salePrice }))
     if (canvasBuy.current) {
-      chart1 = new Chart(canvasBuy.current, {
-        type: 'line',
-        data: { datasets: [{ label: 'Coût craft', data: buys }]},
-        options: { scales: { x: { type: 'time', time: { unit: 'day' } } } }
-      })
+      chart1 = new Chart(canvasBuy.current, { type: 'line', data: { datasets: [{ label: 'Coût craft', data: buys }] } })
     }
     if (canvasSell.current) {
-      chart2 = new Chart(canvasSell.current, {
-        type: 'line',
-        data: { datasets: [{ label: 'Prix de vente', data: sells }]},
-        options: { scales: { x: { type: 'time', time: { unit: 'day' } } } }
-      })
+      chart2 = new Chart(canvasSell.current, { type: 'line', data: { datasets: [{ label: 'Prix de vente', data: sells }] } })
     }
     return () => { chart1?.destroy(); chart2?.destroy(); }
   }, [sales])
@@ -49,8 +37,7 @@ export default function SalesHistory({ item }) {
       salePrice: Number(price || 0),
       daysToSell: Number(days || 0),
     }
-    await addSale(entry)
-    await load()
+    await addSale(entry); await load()
   }
 
   if (!item) return null

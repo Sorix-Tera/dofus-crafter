@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { searchItems } from '../api/dofusdude'
+import { searchEquipment } from '../api/dofusdude'
 
 export default function SearchBar({ onPick }) {
   const [q, setQ] = useState('')
@@ -11,7 +11,7 @@ export default function SearchBar({ onPick }) {
     const t = setTimeout(async () => {
       setLoading(true)
       try {
-        const data = await searchItems(q, 12)
+        const data = await searchEquipment(q, 12)
         setResults(data)
       } catch (e) {
         console.error(e)
@@ -27,7 +27,7 @@ export default function SearchBar({ onPick }) {
       <div className="section-title">Ajouter un objet</div>
       <input
         type="text"
-        placeholder="Cherche un item… (ex. coiffe)"
+        placeholder="Cherche un équipement… (ex. coiffe)"
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
@@ -37,7 +37,7 @@ export default function SearchBar({ onPick }) {
           <button key={it.ankama_id} className="ghost"
             onClick={() => onPick(it)}>
             <div className="flex">
-              {it.image_urls && <img className="item" src={it.image_urls?.hq || it.image_urls?.thumb} alt="" />}
+              {it.image_urls && <img className="item" src={it.image_urls?.thumb || it.image_urls?.hq} alt="" />}
               <div style={{textAlign:'left'}}>
                 <div>{it.name}</div>
                 <div className="small">Lvl {it.level} • {it.type?.name}</div>

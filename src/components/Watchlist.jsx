@@ -5,22 +5,11 @@ import { getWatchlist, removeFromWatchlist, saveToWatchlist } from '../db/priceS
 export default function Watchlist({ onSelect }) {
   const [items, setItems] = useState([])
 
-  async function load() {
-    setItems(await getWatchlist())
-  }
-
+  async function load() { setItems(await getWatchlist()) }
   useEffect(() => { load() }, [])
 
-  const remove = async (id) => {
-    await removeFromWatchlist(id)
-    await load()
-  }
-
-  const toggleSold = async (it) => {
-    const updated = { ...it, sold: !it.sold }
-    await saveToWatchlist(updated)
-    await load()
-  }
+  const remove = async (id) => { await removeFromWatchlist(id); await load() }
+  const toggleSold = async (it) => { await saveToWatchlist({ ...it, sold: !it.sold }); await load() }
 
   return (
     <div className="card">
